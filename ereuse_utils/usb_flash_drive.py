@@ -1,16 +1,20 @@
-import inflection as inflection
 import usb.core
 import usb.util
-
+from ereuse_utils.naming import Naming
 from usb import CLASS_MASS_STORAGE
 
 
-def plugged_usbs():
-    # type: () -> map
-    """Gets the plugged-in USB Flash drives (pen-drives)."""
+def plugged_usbs(multiple=True) -> map or dict:
+    """
+    Gets the plugged-in USB Flash drives (pen-drives).
+
+    If multiple is true, it returns a map, and a dict otherwise.
+
+    If multiple is false, this method will raise a :class:`.NoUSBFound` if no USB is found.
+    """
 
     class FindPenDrives(object):
-        # From https://github.com/py9usb/pyusb/blob/master/docs/tutorial.rst
+        # From https://github.com/pyusb/pyusb/blob/master/docs/tutorial.rst
         def __init__(self, class_):
             self._class = class_
 
@@ -22,21 +26,18 @@ def plugged_usbs():
             # interface that matches our class
             for cfg in device:
                 # find_descriptor: what's it?
-                intf = usb.util.find_descriptor(
-                    cfg,
-                    bInterfaceClass=self._class
-                )
-                if intf is not None:
+                intf = usb.util.find_descriptor(cfg, bInterfaceClass=self._class)
+                # We don't want Card readers
+                if intf is not None and 'crw' not in intf.device.product.lower():
                     return True
 
             return False
 
-    def get_pendrive(pen):
-        # type: (usb.Device) -> dict
-        manufacturer = pen.manufacturer.strip()
-        model = pen.product.strip()
+    def get_pendrive(pen: usb.Device) -> dict:
+        manufacturer = pen.manufacturer.strip() or str(pen.idVendor)
+        model = pen.product.strip() or str(pen.idProduct)
         serial_number = pen.serial_number.strip()
-        hid = manufacturer + '-' + model + '-' + inflection.parameterize(serial_number, '_')
+        hid = Naming.hid(manufacturer, serial_number, model)
         return {
             '_id': hid,  # Make live easier to DeviceHubClient by using _id
             'hid': hid,
@@ -48,4 +49,14 @@ def plugged_usbs():
             'productId': pen.idProduct
         }
 
-    return map(get_pendrive, usb.core.find(find_all=True, custom_match=FindPenDrives(CLASS_MASS_STORAGE)))
+    result = usb.core.find(find_all=multiple, custom_match=FindPenDrives(CLASS_MASS_STORAGE))
+    if multiple:
+        return map(get_pendrive, result)
+    else:
+        if not result:
+            raise NoUSBFound()
+        return get_pendrive(result)
+
+
+class NoUSBFound(Exception):
+    pass
