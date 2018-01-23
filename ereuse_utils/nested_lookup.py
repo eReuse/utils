@@ -1,4 +1,4 @@
-from typing import List
+from typing import Generator
 
 
 class NestedLookup:
@@ -66,15 +66,15 @@ def is_sub_type(value, resource_type):
         return issubclass(value.__class__, resource_type)
 
 
-def get_nested_dicts_with_key_value(parent_dict: dict, key, value) -> List[dict]:
+def get_nested_dicts_with_key_value(parent_dict: dict, key, value):
     """Return all nested dictionaries that contain a key with a specific value. A sub-case of NestedLookup."""
     references = []
     NestedLookup(parent_dict, references, NestedLookup.key_value_equality_factory(key, value))
-    return [document for document, _ in references]
+    return (document for document, _ in references)
 
 
-def get_nested_dicts_with_key_containing_value(parent_dict: dict, key, value) -> List[dict]:
+def get_nested_dicts_with_key_containing_value(parent_dict: dict, key, value):
     """Return all nested dictionaries that contain a key with a specific value. A sub-case of NestedLookup."""
     references = []
     NestedLookup(parent_dict, references, NestedLookup.key_value_containing_value_factory(key, value))
-    return [document for document, _ in references]
+    return (document for document, _ in references)
