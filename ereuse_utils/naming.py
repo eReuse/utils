@@ -29,20 +29,14 @@ class Naming:
             prefix = ''
             resulting_type = string
         resulting_type = dasherize(underscore(resulting_type))
-        return prefix + (pluralize(resulting_type) if Naming._pluralize(resulting_type) else resulting_type)
+        return prefix + pluralize(resulting_type)
 
     @staticmethod
     def python(string: str):
         """
             :param string: String can be type, resource or python case
         """
-        return underscore(singularize(string) if Naming._pluralize(string) else string)
-
-    @staticmethod
-    def _pluralize(string: str):
-        from ereuse_devicehub.default_settings import RESOURCES_CHANGING_NUMBER
-        value = dasherize(underscore(string))
-        return value in RESOURCES_CHANGING_NUMBER or singularize(value) in RESOURCES_CHANGING_NUMBER
+        return underscore(singularize(string))
 
     @staticmethod
     def type(string: str):
@@ -52,7 +46,7 @@ class Naming:
         except IndexError:
             prefix = ''
             resulting_type = string
-        resulting_type = singularize(resulting_type) if Naming._pluralize(resulting_type) else resulting_type
+        resulting_type = singularize(resulting_type)
         resulting_type = resulting_type.replace('-', '_')  # camelize does not convert '-' but '_'
         return prefix + camelize(resulting_type)
 

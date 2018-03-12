@@ -9,6 +9,9 @@ setup(
     author='eReuse.org team',
     author_email='x.bustamante@ereuse.org',
     description='Common functionality for eReuse.org software',
+    install_requires=[
+        'boltons'
+    ],
     extras_require={
         'naming': ['inflection'],
         'usb_flash_drive': ['pyusb', 'inflection'],  # Check pyusb requirements
