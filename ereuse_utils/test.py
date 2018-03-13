@@ -42,7 +42,6 @@ class Client(FlaskClient):
         :return: A tuple with: 1. response data, as a string or JSON
                  depending of Accept, and 2. the Response object.
         """
-        assert uri[-1] != '/', 'Uri does not accept trailing slash'
         headers = headers or {}
         headers['Accept'] = accept
         headers['Content-Type'] = content_type
@@ -50,7 +49,7 @@ class Client(FlaskClient):
         if 'data' in kw and content_type == JSON:
             kw['data'] = json.dumps(kw['data'])
         if item:
-            uri = '{}/{}'.format(uri, item)
+            uri = URL(uri).navigate(item).to_text()
         response = super().open(uri, headers=headers, **kw)
         if status:
             _status = getattr(status, 'code', status)
