@@ -7,6 +7,7 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
 
 JSON = 'application/json'
+ANY = '*/*'
 AUTH = 'Authorization'
 BASIC = 'Basic {}'
 
@@ -56,7 +57,7 @@ class Client(FlaskClient):
             assert response.status_code == _status, \
                 'Expected status code {} but got {}'.format(_status, response.status_code)
         data = response.get_data().decode()
-        if json:
+        if accept == JSON:
             data = json_lib.loads(data) if data else {}
         return data, response
 
