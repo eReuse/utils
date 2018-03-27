@@ -23,8 +23,8 @@ class Client(FlaskClient):
     - Meaningful headers format: a dictionary of name-values.
     """
 
-    def open(self, uri: str, status: int or HTTPException = 200, accept=JSON, content_type=JSON,
-             item=None, headers: dict = None, **kw) -> (dict or str, Response):
+    def open(self, uri: str, status: int or HTTPException = 200, query: dict = {}, accept=JSON,
+             content_type=JSON, item=None, headers: dict = None, **kw) -> (dict or str, Response):
         """
 
         :param uri: The URI without basename and query.
@@ -51,6 +51,13 @@ class Client(FlaskClient):
             kw['data'] = json.dumps(kw['data'])
         if item:
             uri = URL(uri).navigate(item).to_text()
+        if query:
+            url = URL(uri)
+            url.query_params = QueryParamDict({
+                k: json.dumps(v) if isinstance(v, (list, dict)) else v
+                for k, v in query.items()
+            })
+            uri = url.to_text()
         response = super().open(uri, headers=headers, **kw)
         if status:
             _status = getattr(status, 'code', status)
@@ -74,34 +81,27 @@ class Client(FlaskClient):
                       all params are encoded with ``urlencode``.
         :param kw: Kwargs passed into parent ``open``.
         """
-        url = URL(uri)
-        # Convert inner dicts and lists to json
-        # We create a new dict to avoid mutating input
-        url.query_params = QueryParamDict({
-            k: json.dumps(v) if isinstance(v, (list, dict)) else v
-            for k, v in query.items()
-        })
-        return super().get(url.to_text(), item=item, status=status, accept=accept, headers=headers,
-                           **kw)
+        return super().get(uri, item=item, status=status, accept=accept, headers=headers,
+                           query=query, **kw)
 
-    def post(self, uri: str, data: str or dict, status: int or HTTPException = 201,
-             content_type: str = JSON, accept: str = JSON, headers: dict = None, **kw) \
-            -> (dict or str, Response):
+    def post(self, uri: str, data: str or dict, query: dict = {},
+             status: int or HTTPException = 201, content_type: str = JSON, accept: str = JSON,
+             headers: dict = None, **kw) -> (dict or str, Response):
         """
         Performs a POST.
 
         See the parameters in :meth:`ereuse_utils.test.Client.open`.
         """
         return super().post(uri, data=data, status=status, content_type=content_type,
-                            accept=accept, headers=headers, **kw)
+                            accept=accept, headers=headers, query=query, **kw)
 
-    def patch(self, uri: str, data: str or dict, status: int or HTTPException = 200,
-              content_type: str = JSON, item: str = None, accept: str = JSON, headers: dict = None,
-              **kw) -> (dict or str, Response):
+    def patch(self, uri: str, data: str or dict, query: dict = {},
+              status: int or HTTPException = 200, content_type: str = JSON, item: str = None,
+              accept: str = JSON, headers: dict = None, **kw) -> (dict or str, Response):
         """
         Performs a PATCH.
 
         See the parameters in :meth:`ereuse_utils.test.Client.open`.
         """
         return super().patch(uri, item=item, data=data, status=status, content_type=content_type,
-                             accept=accept, headers=headers, **kw)
+                             accept=accept, headers=headers, query=query, **kw)
