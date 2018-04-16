@@ -1,4 +1,5 @@
 import locale
+import subprocess
 from datetime import datetime, timedelta
 from json import JSONEncoder
 from uuid import UUID
@@ -37,3 +38,11 @@ def ensure_utf8(app_name_to_show_on_error: str):
 def now() -> datetime:
     """Returns a compatible 'now' with DeviceHub's API, this is as UTC and without microseconds."""
     return datetime.utcnow().replace(microsecond=0)
+
+
+def run(command: str) -> str:
+    """
+    Python run with defaults: it wants the command as string and raises
+    if something went wrong.
+    """
+    return subprocess.run(command, shell=True, check=True, universal_newlines=True).stdout
