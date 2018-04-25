@@ -1,7 +1,5 @@
-import json
-import json as json_lib
-
 from boltons.urlutils import QueryParamDict, URL
+from flask import json
 from flask.testing import FlaskClient
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
@@ -43,18 +41,19 @@ class Client(FlaskClient):
         :return: A tuple with: 1. response data, as a string or JSON
                  depending of Accept, and 2. the Response object.
         """
+        j_encoder = self.application.json_encoder
         headers = headers or {}
         headers['Accept'] = accept
         headers['Content-Type'] = content_type
         headers = [(k, v) for k, v in headers.items()]
         if 'data' in kw and content_type == JSON:
-            kw['data'] = json.dumps(kw['data'])
+            kw['data'] = json.dumps(kw['data'], cls=j_encoder)
         if item:
             uri = URL(uri).navigate(item).to_text()
         if query:
             url = URL(uri)
             url.query_params = QueryParamDict({
-                k: json.dumps(v) if isinstance(v, (list, dict)) else v
+                k: json.dumps(v, cls=j_encoder) if isinstance(v, (list, dict)) else v
                 for k, v in query.items()
             })
             uri = url.to_text()
@@ -65,7 +64,7 @@ class Client(FlaskClient):
                 'Expected status code {} but got {}'.format(_status, response.status_code)
         data = response.get_data().decode()
         if accept == JSON:
-            data = json_lib.loads(data) if data else {}
+            data = json.loads(data) if data else {}
         return data, response
 
     def get(self, uri: str, query: dict = {}, item: str = None, status: int or HTTPException = 200,

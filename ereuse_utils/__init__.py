@@ -1,11 +1,12 @@
 import locale
 from datetime import datetime, timedelta
-from json import JSONEncoder
+from distutils.version import StrictVersion
+from json import JSONEncoder as StandardJSONEncoder
 from uuid import UUID
 
 
-class DeviceHubJSONEncoder(JSONEncoder):
-    """A JSONEncoder that encodes datetimes, timedeltas, UUIDs and Enums in a compatiable way for DeviceHub's API."""
+class JSONEncoder(StandardJSONEncoder):
+    """An overloaded JSON Encoder with extra type support."""
 
     def default(self, obj):
         if hasattr(obj, 'value'):  # an enumerated value
@@ -13,8 +14,10 @@ class DeviceHubJSONEncoder(JSONEncoder):
         elif isinstance(obj, datetime):
             return obj.isoformat()
         elif isinstance(obj, timedelta):
-            return str(obj - timedelta(microseconds=obj.microseconds))
+            return str(obj)
         elif isinstance(obj, UUID):
+            return str(obj)
+        elif isinstance(obj, StrictVersion):
             return str(obj)
         return JSONEncoder.default(self, obj)
 
