@@ -61,7 +61,9 @@ class Client(FlaskClient):
         if status:
             _status = getattr(status, 'code', status)
             assert response.status_code == _status, \
-                'Expected status code {} but got {}'.format(_status, response.status_code)
+                'Expected status code {} but got {}. Returned data is:\n' \
+                '{}'.format(_status, response.status_code, response.get_data().decode())
+
         data = response.get_data().decode()
         if accept == JSON:
             data = json.loads(data) if data else {}
