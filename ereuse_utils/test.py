@@ -1,3 +1,5 @@
+from typing import Any, Iterable, Tuple
+
 from boltons.urlutils import QueryParamDict, URL
 from flask import json
 from flask.testing import FlaskClient
@@ -21,13 +23,26 @@ class Client(FlaskClient):
     - Meaningful headers format: a dictionary of name-values.
     """
 
-    def open(self, uri: str, status: int or HTTPException = 200, query: dict = {}, accept=JSON,
-             content_type=JSON, item=None, headers: dict = None, **kw) -> (dict or str, Response):
+    def open(self,
+             uri: str,
+             status: int or HTTPException = 200,
+             query: Iterable[Tuple[str, Any]] = tuple(),
+             accept=JSON,
+             content_type=JSON,
+             item=None,
+             headers: dict = None,
+             **kw) -> (dict or str, Response):
         """
 
         :param uri: The URI without basename and query.
         :param status: Assert the response for specified status. Set
                        None to avoid.
+        :param query: The query of the URL in the form of
+                      [(key1, value1), (key2, value2), (key1, value3)].
+                      If value is a list or a dict, they will be
+                      converted to JSON.
+                      Please, see :class:`boltons.urlutils.
+                      QueryParamDict` for more info.
         :param accept: The Accept header. If 'application/json'
                        (default) then it will parse incoming JSON.
         :param item: The last part of the path. Useful to do something
@@ -52,10 +67,10 @@ class Client(FlaskClient):
             uri = URL(uri).navigate(item).to_text()
         if query:
             url = URL(uri)
-            url.query_params = QueryParamDict({
-                k: json.dumps(v, cls=j_encoder) if isinstance(v, (list, dict)) else v
-                for k, v in query.items()
-            })
+            url.query_params = QueryParamDict([
+                (k, json.dumps(v, cls=j_encoder) if isinstance(v, (list, dict)) else v)
+                for k, v in query
+            ])
             uri = url.to_text()
         response = super().open(uri, headers=headers, **kw)
         if status:
@@ -69,8 +84,14 @@ class Client(FlaskClient):
             data = json.loads(data) if data else {}
         return data, response
 
-    def get(self, uri: str, query: dict = {}, item: str = None, status: int or HTTPException = 200,
-            accept: str = JSON, headers: dict = None, **kw) -> (dict or str, Response):
+    def get(self,
+            uri: str,
+            query: Iterable[Tuple[str, Any]] = tuple(),
+            item: str = None,
+            status: int or HTTPException = 200,
+            accept: str = JSON,
+            headers: dict = None,
+            **kw) -> (dict or str, Response):
         """
         Performs a GET.
 
@@ -85,8 +106,13 @@ class Client(FlaskClient):
         return super().get(uri, item=item, status=status, accept=accept, headers=headers,
                            query=query, **kw)
 
-    def post(self, uri: str, data: str or dict, query: dict = {},
-             status: int or HTTPException = 201, content_type: str = JSON, accept: str = JSON,
+    def post(self,
+             uri: str,
+             data: str or dict,
+             query: Iterable[Tuple[str, Any]] = tuple(),
+             status: int or HTTPException = 201,
+             content_type: str = JSON,
+             accept: str = JSON,
              headers: dict = None, **kw) -> (dict or str, Response):
         """
         Performs a POST.
@@ -96,9 +122,15 @@ class Client(FlaskClient):
         return super().post(uri, data=data, status=status, content_type=content_type,
                             accept=accept, headers=headers, query=query, **kw)
 
-    def patch(self, uri: str, data: str or dict, query: dict = {},
-              status: int or HTTPException = 200, content_type: str = JSON, item: str = None,
-              accept: str = JSON, headers: dict = None, **kw) -> (dict or str, Response):
+    def patch(self,
+              uri: str,
+              data: str or dict,
+              query: Iterable[Tuple[str, Any]] = tuple(),
+              status: int or HTTPException = 200,
+              content_type: str = JSON,
+              item: str = None,
+              accept: str = JSON,
+              headers: dict = None, **kw) -> (dict or str, Response):
         """
         Performs a PATCH.
 
