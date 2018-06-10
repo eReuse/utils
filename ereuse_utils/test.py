@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Tuple
+from typing import Any, Iterable, Tuple, Union, Dict
 
 from boltons.urlutils import QueryParamDict, URL
 from flask import json
@@ -31,7 +31,7 @@ class Client(FlaskClient):
              content_type=JSON,
              item=None,
              headers: dict = None,
-             **kw) -> (dict or str, Response):
+             **kw) -> (Union[Dict[str, Any], str], Response):
         """
 
         :param uri: The URI without basename and query.
@@ -91,7 +91,7 @@ class Client(FlaskClient):
             status: int or HTTPException = 200,
             accept: str = JSON,
             headers: dict = None,
-            **kw) -> (dict or str, Response):
+            **kw) -> (Union[Dict[str, Any], str], Response):
         """
         Performs a GET.
 
@@ -113,7 +113,7 @@ class Client(FlaskClient):
              status: int or HTTPException = 201,
              content_type: str = JSON,
              accept: str = JSON,
-             headers: dict = None, **kw) -> (dict or str, Response):
+             headers: dict = None, **kw) -> (Union[Dict[str, Any], str], Response):
         """
         Performs a POST.
 
@@ -130,7 +130,7 @@ class Client(FlaskClient):
               content_type: str = JSON,
               item: str = None,
               accept: str = JSON,
-              headers: dict = None, **kw) -> (dict or str, Response):
+              headers: dict = None, **kw) -> (Union[Dict[str, Any], str], Response):
         """
         Performs a PATCH.
 
