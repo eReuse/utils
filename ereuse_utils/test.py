@@ -41,7 +41,7 @@ class Client(FlaskClient):
                       [(key1, value1), (key2, value2), (key1, value3)].
                       If value is a list or a dict, they will be
                       converted to JSON.
-                      Please, see :class:`boltons.urlutils.
+                      Please, see :class:`boltons.urlutils`.
                       QueryParamDict` for more info.
         :param accept: The Accept header. If 'application/json'
                        (default) then it will parse incoming JSON.
