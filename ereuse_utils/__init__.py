@@ -1,13 +1,13 @@
+import json
 import locale
 from collections import Iterable
 from datetime import datetime, timedelta
 from distutils.version import StrictVersion
-from json import JSONEncoder as StandardJSONEncoder
 from typing import Generator
 from uuid import UUID
 
 
-class JSONEncoder(StandardJSONEncoder):
+class JSONEncoder(json.JSONEncoder):
     """An overloaded JSON Encoder with extra type support."""
 
     def default(self, obj):
@@ -21,7 +21,9 @@ class JSONEncoder(StandardJSONEncoder):
             return str(obj)
         elif isinstance(obj, StrictVersion):
             return str(obj)
-        return JSONEncoder.default(self, obj)
+        elif isinstance(obj, set):
+            return list(obj)
+        return json.JSONEncoder.default(self, obj)  # do not do ``super``
 
 
 def ensure_utf8(app_name_to_show_on_error: str):

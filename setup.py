@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="ereuse-utils",
-    version='0.3.0b2',
+    version='0.3.0b7',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',
@@ -15,7 +15,9 @@ setup(
     extras_require={
         'naming': ['inflection'],
         'usb_flash_drive': ['pyusb', 'inflection'],  # Check pyusb requirements
-        'test': ['flask']
+        'test': ['flask'],
+        'session': ['requests-toolbelt'],
+        'cli': ['click']
     },
     classifiers=[
         'Development Status :: 4 - Beta',
