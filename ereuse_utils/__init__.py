@@ -16,7 +16,7 @@ class JSONEncoder(json.JSONEncoder):
         elif isinstance(obj, datetime):
             return obj.isoformat()
         elif isinstance(obj, timedelta):
-            return str(obj)
+            return round(obj.total_seconds())
         elif isinstance(obj, UUID):
             return str(obj)
         elif isinstance(obj, StrictVersion):

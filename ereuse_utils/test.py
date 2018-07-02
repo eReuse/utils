@@ -1,4 +1,4 @@
-from typing import Any, Iterable, Tuple, Union, Dict
+from typing import Any, Dict, Iterable, Tuple, Union
 
 from boltons.urlutils import QueryParamDict, URL
 from flask import json
