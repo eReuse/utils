@@ -28,9 +28,9 @@ def plugged_usbs(multiple=True) -> map or dict:
                 # find_descriptor: what's it?
                 intf = usb.util.find_descriptor(cfg, bInterfaceClass=self._class)
                 # We don't want Card readers
-                if intf is not None and 'crw' not in intf.device.product.lower():
+                product = intf.device.product.lower()
+                if intf is not None and 'crw' not in product and 'reader' not in product:
                     return True
-
             return False
 
     def get_pendrive(pen: usb.Device) -> dict:
