@@ -1,7 +1,8 @@
 import usb.core
 import usb.util
-from ereuse_utils.naming import Naming
 from usb import CLASS_MASS_STORAGE
+
+from ereuse_utils.naming import Naming
 
 
 def plugged_usbs(multiple=True) -> map or dict:
@@ -28,9 +29,16 @@ def plugged_usbs(multiple=True) -> map or dict:
                 # find_descriptor: what's it?
                 intf = usb.util.find_descriptor(cfg, bInterfaceClass=self._class)
                 # We don't want Card readers
-                product = intf.device.product.lower()
-                if intf is not None and 'crw' not in product and 'reader' not in product:
-                    return True
+                if intf is not None:
+                    try:
+                        product = intf.device.product.lower()
+                    except ValueError as e:
+                        if 'langid' in str(e):
+                            raise OSError('Cannot get "langid". Do you have permissions?')
+                        else:
+                            raise e
+                    if 'crw' not in product and 'reader' not in product:
+                        return True
             return False
 
     def get_pendrive(pen: usb.Device) -> dict:
