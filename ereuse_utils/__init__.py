@@ -2,6 +2,7 @@ import json
 import locale
 from collections import Iterable
 from datetime import datetime, timedelta
+from decimal import Decimal
 from distutils.version import StrictVersion
 from typing import Generator
 from uuid import UUID
@@ -23,6 +24,8 @@ class JSONEncoder(json.JSONEncoder):
             return str(obj)
         elif isinstance(obj, set):
             return list(obj)
+        elif isinstance(obj, Decimal):
+            return float(obj)
         return json.JSONEncoder.default(self, obj)  # do not do ``super``
 
 
