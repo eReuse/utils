@@ -1,4 +1,5 @@
 import enum as _enum
+import getpass
 import pathlib
 from typing import Type
 
@@ -29,3 +30,9 @@ class Path(click.Path):
 
     def convert(self, value, param, ctx):
         return pathlib.Path(super().convert(value, param, ctx))
+
+
+def password(service: str, username: str, prompt: str = 'Password:') -> str:
+    """Gets a password from the keyring or the terminal."""
+    import keyring
+    return keyring.get_password(service, username) or getpass.getpass(prompt)
