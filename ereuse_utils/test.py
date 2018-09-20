@@ -11,6 +11,10 @@ ANY = '*/*'
 AUTH = 'Authorization'
 BASIC = 'Basic {}'
 
+Res = Tuple[Union[Dict[str, object], str], Response]
+Query = Iterable[Tuple[str, Any]]
+Status = Union[int, HTTPException]
+
 
 class Client(FlaskClient):
     """
@@ -25,13 +29,13 @@ class Client(FlaskClient):
 
     def open(self,
              uri: str,
-             status: int or HTTPException = 200,
-             query: Iterable[Tuple[str, Any]] = tuple(),
+             status: Status = 200,
+             query: Query = tuple(),
              accept=JSON,
              content_type=JSON,
              item=None,
              headers: dict = None,
-             **kw) -> (Union[Dict[str, Any], str], Response):
+             **kw) -> Res:
         """
 
         :param uri: The URI without basename and query.
@@ -86,12 +90,12 @@ class Client(FlaskClient):
 
     def get(self,
             uri: str,
-            query: Iterable[Tuple[str, Any]] = tuple(),
+            query: Query = tuple(),
             item: str = None,
-            status: int or HTTPException = 200,
+            status: Status = 200,
             accept: str = JSON,
             headers: dict = None,
-            **kw) -> (Union[Dict[str, Any], str], Response):
+            **kw) -> Res:
         """
         Performs a GET.
 
@@ -109,11 +113,12 @@ class Client(FlaskClient):
     def post(self,
              uri: str,
              data: str or dict,
-             query: Iterable[Tuple[str, Any]] = tuple(),
-             status: int or HTTPException = 201,
+             query: Query = tuple(),
+             status: Status = 201,
              content_type: str = JSON,
              accept: str = JSON,
-             headers: dict = None, **kw) -> (Union[Dict[str, Any], str], Response):
+             headers: dict = None,
+             **kw) -> Res:
         """
         Performs a POST.
 
@@ -125,12 +130,13 @@ class Client(FlaskClient):
     def patch(self,
               uri: str,
               data: str or dict,
-              query: Iterable[Tuple[str, Any]] = tuple(),
-              status: int or HTTPException = 200,
+              query: Query = tuple(),
+              status: Status = 200,
               content_type: str = JSON,
               item: str = None,
               accept: str = JSON,
-              headers: dict = None, **kw) -> (Union[Dict[str, Any], str], Response):
+              headers: dict = None,
+              **kw) -> Res:
         """
         Performs a PATCH.
 
@@ -138,3 +144,27 @@ class Client(FlaskClient):
         """
         return super().patch(uri, item=item, data=data, status=status, content_type=content_type,
                              accept=accept, headers=headers, query=query, **kw)
+
+    def put(self,
+            uri: str,
+            data: str or dict,
+            query: Query = tuple(),
+            status: Status = 201,
+            content_type: str = JSON,
+            item: str = None,
+            accept: str = JSON,
+            headers: dict = None,
+            **kw) -> Res:
+        return super().put(uri, item=item, data=data, status=status, content_type=content_type,
+                           accept=accept, headers=headers, query=query, **kw)
+
+    def delete(self,
+               uri: str,
+               query: Query = tuple(),
+               item: str = None,
+               status: Status = 204,
+               accept: str = JSON,
+               headers: dict = None,
+               **kw) -> Res:
+        return super().delete(uri, query=query, item=item, status=status, accept=accept,
+                              headers=headers, **kw)
