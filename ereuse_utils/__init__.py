@@ -26,7 +26,41 @@ class JSONEncoder(json.JSONEncoder):
             return list(obj)
         elif isinstance(obj, Decimal):
             return float(obj)
+        elif isinstance(obj, Dumpeable):
+            return obj.dump()
         return json.JSONEncoder.default(self, obj)  # do not do ``super``
+
+
+class Dumpeable:
+    """Dumps dictionaries and jsons for Devicehub.
+
+    A base class to allow subclasses to generate dictionaries
+    and json suitable for sending to a Devicehub, i.e. preventing
+    private and  constants to be in the JSON and camelCases field names.
+    """
+
+    ENCODER = JSONEncoder
+
+    def dump(self):
+        """
+        Creates a dictionary consisting of the
+        non-private fields of this instance with camelCase field names.
+        """
+        d = vars(self).copy()
+        for name in vars(self).keys():
+            if name.startswith('_') or name[0].isupper():
+                del d[name]
+            else:
+                import inflection
+                d[inflection.camelize(name, uppercase_first_letter=False)] = d.pop(name)
+        return d
+
+    def to_json(self):
+        """
+        Creates a JSON representation of the non-private fields of
+        this class.
+        """
+        return json.dumps(self, cls=self.ENCODER, indent=2)
 
 
 def ensure_utf8(app_name_to_show_on_error: str):
