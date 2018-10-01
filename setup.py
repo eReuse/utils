@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="ereuse-utils",
-    version='0.4.0b7',
+    version='0.4.0b8',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',

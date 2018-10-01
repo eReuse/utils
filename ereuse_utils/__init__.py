@@ -4,6 +4,7 @@ from collections import Iterable
 from datetime import datetime, timedelta
 from decimal import Decimal
 from distutils.version import StrictVersion
+from functools import wraps
 from typing import Generator
 from uuid import UUID
 
@@ -103,3 +104,15 @@ def flatten_mixed(values: Iterable) -> Generator:
                 yield y
         else:
             yield x
+
+
+def if_none_return_none(f):
+    """If the first value is None return None, otherwise execute f."""
+
+    @wraps(f)
+    def wrapper(self, value, *args, **kwargs):
+        if value is None:
+            return None
+        return f(self, value, *args, **kwargs)
+
+    return wrapper
