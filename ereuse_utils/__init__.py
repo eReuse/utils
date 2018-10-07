@@ -13,8 +13,8 @@ class JSONEncoder(json.JSONEncoder):
     """An overloaded JSON Encoder with extra type support."""
 
     def default(self, obj):
-        if hasattr(obj, 'value'):  # an enumerated value
-            return obj.value
+        if hasattr(obj, 'name'):  # an enumerated value
+            return obj.name
         elif isinstance(obj, datetime):
             return obj.isoformat()
         elif isinstance(obj, timedelta):
