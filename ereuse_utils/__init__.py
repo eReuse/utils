@@ -1,3 +1,4 @@
+import ipaddress
 import json
 import locale
 from collections import Iterable
@@ -5,7 +6,7 @@ from datetime import datetime, timedelta
 from decimal import Decimal
 from distutils.version import StrictVersion
 from functools import wraps
-from typing import Generator
+from typing import Generator, Union
 from uuid import UUID
 
 
@@ -14,6 +15,7 @@ class JSONEncoder(json.JSONEncoder):
 
     def default(self, obj):
         if hasattr(obj, 'name'):  # an enumerated value
+            # todo do not use duck typing here
             return obj.name
         elif isinstance(obj, datetime):
             return obj.isoformat()
@@ -116,3 +118,24 @@ def if_none_return_none(f):
         return f(self, value, *args, **kwargs)
 
     return wrapper
+
+
+def local_ip() -> Union[ipaddress.IPv4Address, ipaddress.IPv6Address]:
+    """Gets the local IP of the interface that has access to the
+    Internet.
+
+    This is a reliable way to test if a device has an active
+    connection to the Internet.
+
+    This method works by connecting to the IP of ereuse01.ereuse.org.
+
+    >>> local_ip()
+
+    :raise OSError: The device cannot connect to the Internet.
+    """
+    import socket, ipaddress
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(('109.69.8.152', 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ipaddress.ip_address(ip)
