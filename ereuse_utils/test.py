@@ -1,3 +1,4 @@
+from contextlib import suppress
 from typing import Any, Dict, Iterable, Tuple, Union
 
 from boltons.urlutils import QueryParamDict, URL
@@ -83,7 +84,9 @@ class Client(FlaskClient):
                 'Expected status code {} but got {}. Returned data is:\n' \
                 '{}'.format(_status, response.status_code, response.get_data().decode())
 
-        data = response.get_data().decode()
+        data = response.get_data()
+        with suppress(UnicodeDecodeError):
+            data = data.decode()
         if accept == JSON:
             data = json.loads(data) if data else {}
         return data, response
