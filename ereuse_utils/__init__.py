@@ -1,3 +1,4 @@
+import enum
 import ipaddress
 import json
 import locale
@@ -14,8 +15,7 @@ class JSONEncoder(json.JSONEncoder):
     """An overloaded JSON Encoder with extra type support."""
 
     def default(self, obj):
-        if hasattr(obj, 'name'):  # an enumerated value
-            # todo do not use duck typing here
+        if isinstance(obj, enum.Enum):
             return obj.name
         elif isinstance(obj, datetime):
             return obj.isoformat()
