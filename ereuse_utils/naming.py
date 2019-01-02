@@ -99,6 +99,11 @@ class Naming:
         return prefix + type_name
 
     @staticmethod
-    def hid(manufacturer: str, serial_number: str, model: str) -> str:
-        """Computes the HID for the given properties of a device. The HID is suitable to use to an URI."""
-        return Naming.url_word(manufacturer) + '-' + Naming.url_word(serial_number) + '-' + Naming.url_word(model)
+    def hid(type: str, manufacturer: str, model: str, serial_number: str) -> str:
+        """Computes the HID for the given properties of a device.
+        The HID is suitable to use to an URI.
+        """
+        return '{type}-{mn}-{ml}-{sn}'.format(type=Naming.url_word(type),
+                                              mn=Naming.url_word(manufacturer),
+                                              ml=Naming.url_word(model),
+                                              sn=Naming.url_word(serial_number))
