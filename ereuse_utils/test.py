@@ -1,20 +1,17 @@
 from contextlib import suppress
-from typing import Any, Dict, Iterable, Tuple, Union
+from typing import Dict, Tuple, Union
 
-from boltons.urlutils import QueryParamDict, URL
 from flask import json
 from flask.testing import FlaskClient
-from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
 
-JSON = 'application/json'
-ANY = '*/*'
-AUTH = 'Authorization'
-BASIC = 'Basic {}'
+from ereuse_utils.session import ANY, AUTH, BASIC, DevicehubClient, JSON, Query, Status
+
+ANY = ANY
+AUTH = AUTH
+BASIC = BASIC
 
 Res = Tuple[Union[Dict[str, object], str], Response]
-Query = Iterable[Tuple[str, Any]]
-Status = Union[int, HTTPException]
 
 
 class Client(FlaskClient):
@@ -69,14 +66,9 @@ class Client(FlaskClient):
         if 'data' in kw and content_type == JSON:
             kw['data'] = json.dumps(kw['data'], cls=j_encoder)
         if item:
-            uri = URL(uri).navigate(item).to_text()
+            uri = DevicehubClient.parse_uri(uri, item)
         if query:
-            url = URL(uri)
-            url.query_params = QueryParamDict([
-                (k, json.dumps(v, cls=j_encoder) if isinstance(v, (list, dict)) else v)
-                for k, v in query
-            ])
-            uri = url.to_text()
+            uri = DevicehubClient.parse_query(uri, query)
         response = super().open(uri, headers=headers, **kw)
         if status:
             _status = getattr(status, 'code', status)

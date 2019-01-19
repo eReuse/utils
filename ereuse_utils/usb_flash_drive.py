@@ -45,11 +45,11 @@ def plugged_usbs(multiple=True) -> map or dict:
         manufacturer = pen.manufacturer.strip() or str(pen.idVendor)
         model = pen.product.strip() or str(pen.idProduct)
         serial_number = pen.serial_number.strip()
-        hid = Naming.hid(manufacturer, serial_number, model)
+        hid = Naming.hid('USBFlashDrive', manufacturer, model, serial_number)
         return {
-            '_id': hid,  # Make live easier to DeviceHubClient by using _id
+            'id': hid,  # Make live easier to DeviceHubClient by using _id
             'hid': hid,
-            '@type': 'USBFlashDrive',
+            'type': 'USBFlashDrive',
             'serialNumber': serial_number,
             'model': model,
             'manufacturer': manufacturer,

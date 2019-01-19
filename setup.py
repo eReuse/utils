@@ -1,5 +1,10 @@
 from setuptools import find_packages, setup
 
+test_requires = [
+    'pytest',
+    'requests_mock'
+]
+
 setup(
     name="ereuse-utils",
     version='0.4.0b13',
@@ -19,8 +24,13 @@ setup(
         'test': ['flask'],
         'session': ['requests-toolbelt'],
         'cli': ['click'],
-        'keyring': ['keyring']
+        'keyring': ['keyring'],
+        'testing': test_requires
     },
+    tests_require=test_requires,
+    setup_requires=[
+        'pytest-runner'
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
