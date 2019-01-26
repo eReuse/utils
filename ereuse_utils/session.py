@@ -1,11 +1,13 @@
+import base64
 import json
 from typing import Any, Dict, Iterable, Tuple, Union
 
 import boltons.urlutils
-import ereuse_utils
 from requests import Response
 from requests_toolbelt.sessions import BaseUrlSession
 from werkzeug.exceptions import HTTPException
+
+import ereuse_utils
 
 Query = Iterable[Tuple[str, Any]]
 Status = Union[int, HTTPException]
@@ -30,6 +32,16 @@ class DevicehubClient(Session):
     """A Session pre-configured to connect to Devicehub-like APIs."""
 
     def __init__(self, base_url: URL = None, token=None):
+        """Initializes a session pointing to a Devicehub endpoint.
+
+        Authentication can be passed-in as a token for endpoints
+        that require them, now at ini, after when executing the method,
+        or in between with ``set_auth``.
+
+        :param base_url: An url pointing to a endpoint.
+        :param token: A Base64 encoded token, as given by a devicehub.
+                      You can encode tokens by executing `encode_token`.
+        """
         base_url = base_url.to_text() if isinstance(base_url, boltons.urlutils.URL) else base_url
         super().__init__(base_url)
         assert base_url[-1] != '/', 'Do not provide a final slash to the URL'
@@ -38,6 +50,11 @@ class DevicehubClient(Session):
 
     def set_auth(self, token):
         self.headers['Authorization'] = 'Basic {}'.format(token)
+
+    @classmethod
+    def encode_token(cls, token: str):
+        """Encodes a token suitable for a Devicehub endpoint."""
+        return base64.b64encode(str.encode(str(token) + ':')).decode()
 
     def get(self,
             base_url: URL,
