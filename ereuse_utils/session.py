@@ -148,7 +148,7 @@ class DevicehubClient(Session):
                 **kw) -> Res:
         assert not kw.get('json', None), 'Do not use json; use data.'
         # We allow uris without slashes for item endpoints
-        uri = str(uri)
+        uri = str(uri) if uri else None
         headers = headers or {}
         headers['Accept'] = accept
         headers['Content-Type'] = content_type
