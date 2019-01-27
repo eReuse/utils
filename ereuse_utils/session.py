@@ -95,6 +95,45 @@ class DevicehubClient(Session):
                             headers=headers,
                             token=token, **kwargs)
 
+    def delete(self,
+               base_url: URL,
+               uri=None,
+               status: Status = 204,
+               query: Query = tuple(),
+               accept=JSON,
+               content_type=JSON,
+               headers: dict = None,
+               token=None,
+               **kwargs) -> Res:
+        return super().delete(base_url,
+                              uri=uri,
+                              status=status,
+                              query=query,
+                              accept=accept,
+                              content_type=content_type,
+                              headers=headers,
+                              token=token, **kwargs)
+
+    def patch(self, base_url: URL,
+              data: Data,
+              uri=None,
+              status: Status = 201,
+              query: Query = tuple(),
+              accept=JSON,
+              content_type=JSON,
+              headers: dict = None,
+              token=None,
+              **kwargs) -> Res:
+        return super().patch(base_url,
+                             data=data,
+                             uri=uri,
+                             status=status,
+                             query=query,
+                             accept=accept,
+                             content_type=content_type,
+                             headers=headers,
+                             token=token, **kwargs)
+
     def request(self,
                 method,
                 base_url: URL,
@@ -108,7 +147,8 @@ class DevicehubClient(Session):
                 token=None,
                 **kw) -> Res:
         assert not kw.get('json', None), 'Do not use json; use data.'
-        assert not uri or uri[-1] == '/', 'uri should end with a slash'
+        # We allow uris without slashes for item endpoints
+        uri = str(uri)
         headers = headers or {}
         headers['Accept'] = accept
         headers['Content-Type'] = content_type
