@@ -16,7 +16,7 @@ ANY = '*/*'
 AUTH = 'Authorization'
 BASIC = 'Basic {}'
 URL = Union[str, boltons.urlutils.URL]
-Data = Union[str, dict]
+Data = Union[str, dict, ereuse_utils.Dumpeable]
 Res = Tuple[Union[Dict[str, Any], str], Response]
 
 
@@ -61,7 +61,7 @@ class DevicehubClient(Session):
 
         :return: The logged-in user.
         """
-        user, _ = self.post('/users/login/', {'email': email, 'password': password})
+        user, _ = self.post('/users/login/', {'email': email, 'password': password}, status=200)
         self.set_auth(user['token'])
         return user
 
@@ -177,7 +177,7 @@ class DevicehubClient(Session):
             if _status != response.status_code:
                 raise WrongStatus('Req to {} failed bc the status is {} but it should have been {}'
                                   .format(url, response.status_code, _status))
-        data = response.content if not accept == JSON else response.json()
+        data = response.content if not accept == JSON or not response.content else response.json()
         return data, response
 
     @staticmethod
