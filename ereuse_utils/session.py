@@ -17,7 +17,7 @@ AUTH = 'Authorization'
 BASIC = 'Basic {}'
 URL = Union[str, boltons.urlutils.URL]
 Data = Union[str, dict]
-Res = Tuple[Union[Dict[str, object], str], Response]
+Res = Tuple[Union[Dict[str, Any], str], Response]
 
 
 class Session(BaseUrlSession):
@@ -55,6 +55,15 @@ class DevicehubClient(Session):
     def encode_token(cls, token: str):
         """Encodes a token suitable for a Devicehub endpoint."""
         return base64.b64encode(str.encode(str(token) + ':')).decode()
+
+    def login(self, email: str, password: str) -> Dict[str, Any]:
+        """Performs login, authenticating future requests.
+
+        :return: The logged-in user.
+        """
+        user, _ = self.post('/users/login/', {'email': email, 'password': password})
+        self.set_auth(user['token'])
+        return user
 
     def get(self,
             base_url: URL,
