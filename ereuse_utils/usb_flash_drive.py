@@ -42,6 +42,8 @@ def plugged_usbs(multiple=True) -> map or dict:
             return False
 
     def get_pendrive(pen: usb.Device) -> dict:
+        if not pen.manufacturer or not pen.product or not pen.serial_number:
+            raise UsbDoesNotHaveHid()
         manufacturer = pen.manufacturer.strip() or str(pen.idVendor)
         model = pen.product.strip() or str(pen.idProduct)
         serial_number = pen.serial_number.strip()
@@ -67,4 +69,8 @@ def plugged_usbs(multiple=True) -> map or dict:
 
 
 class NoUSBFound(Exception):
+    pass
+
+
+class UsbDoesNotHaveHid(Exception):
     pass
