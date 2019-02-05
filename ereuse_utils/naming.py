@@ -1,5 +1,22 @@
 from inflection import camelize, dasherize, parameterize, pluralize, singularize, underscore
 
+HID_CONVERSION_DOC = """
+        The HID is the result of concatenating,
+        in the following order: the type of device (ex. Computer),
+        the manufacturer name, the model name, and the S/N. It is joined
+        with hyphens, and adapted to comply with the URI specification, so
+        it can be used in the URI identifying the device on the Internet.
+        The conversion is done as follows:
+    
+        1. non-ASCII characters are converted to their ASCII equivalent or
+           removed.
+        2. Characterst that are not letters or numbers are converted to 
+           underscores, in a way that there are no trailing underscores
+           and no underscores together, and they are set to lowercase.
+        
+        Ex. ``laptop-acer-aod270-lusga_0d0242201212c7614``
+    """
+
 
 class Naming:
     """
@@ -94,7 +111,8 @@ class Naming:
                 "@type": "Accept"  // it is an event from a device
         """
         if Naming.TYPE_PREFIX in type_name:
-            raise TypeError('Cannot create new type: type {} is already prefixed.'.format(type_name))
+            raise TypeError(
+                'Cannot create new type: type {} is already prefixed.'.format(type_name))
         prefix = (prefix + Naming.TYPE_PREFIX) if prefix is not None else ''
         return prefix + type_name
 
@@ -102,7 +120,7 @@ class Naming:
     def hid(type: str, manufacturer: str, model: str, serial_number: str) -> str:
         """Computes the HID for the given properties of a device.
         The HID is suitable to use to an URI.
-        """
+        """ + HID_CONVERSION_DOC
         return '{type}-{mn}-{ml}-{sn}'.format(type=Naming.url_word(type),
                                               mn=Naming.url_word(manufacturer),
                                               ml=Naming.url_word(model),
