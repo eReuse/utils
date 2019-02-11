@@ -139,3 +139,10 @@ def local_ip() -> Union[ipaddress.IPv4Address, ipaddress.IPv6Address]:
     ip = s.getsockname()[0]
     s.close()
     return ipaddress.ip_address(ip)
+
+
+def version(package_name: str) -> StrictVersion:
+    """Returns the version of a package name installed with pip."""
+    # From https://stackoverflow.com/a/2073599
+    import pkg_resources
+    return StrictVersion(pkg_resources.require(package_name)[0].version)
