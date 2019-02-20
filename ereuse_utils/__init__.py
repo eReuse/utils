@@ -120,14 +120,15 @@ def if_none_return_none(f):
     return wrapper
 
 
-def local_ip() -> Union[ipaddress.IPv4Address, ipaddress.IPv6Address]:
+def local_ip(dest='109.69.8.152') -> Union[ipaddress.IPv4Address, ipaddress.IPv6Address]:
     """Gets the local IP of the interface that has access to the
     Internet.
 
     This is a reliable way to test if a device has an active
     connection to the Internet.
 
-    This method works by connecting to the IP of ereuse01.ereuse.org.
+    This method works by connecting, by default,
+    to the IP of ereuse01.ereuse.org.
 
     >>> local_ip()
 
@@ -135,7 +136,7 @@ def local_ip() -> Union[ipaddress.IPv4Address, ipaddress.IPv6Address]:
     """
     import socket, ipaddress
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.connect(('109.69.8.152', 80))
+    s.connect((dest, 80))
     ip = s.getsockname()[0]
     s.close()
     return ipaddress.ip_address(ip)
