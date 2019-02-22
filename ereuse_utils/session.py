@@ -72,7 +72,7 @@ class DevicehubClient(Session):
         user, _ = self.post('/users/login/', {'email': email, 'password': password}, status=200)
         self.set_auth(user['token'])
         self.user = user
-        self.inventory = user['inventories'][0]
+        self.inventory = user['inventories'][0]['id']
         return user
 
     def get(self,

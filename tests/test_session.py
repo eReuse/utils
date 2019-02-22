@@ -24,7 +24,7 @@ def test_devicehub_client(requests_mock: requests_mock.mocker.Mocker):
 
 def test_devicehub_client_inventories(requests_mock: requests_mock.mocker.Mocker):
     requests_mock.post('https://example.com/users/login/',
-                       json={'token': 'fooToken', 'inventories': ['db1']},
+                       json={'token': 'fooToken', 'inventories': [{'id': 'db1'}]},
                        status_code=200)
     requests_mock.get('https://example.com/db1/foo/',
                       # request
