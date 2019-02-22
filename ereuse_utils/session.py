@@ -31,7 +31,9 @@ class Session(BaseUrlSession):
 class DevicehubClient(Session):
     """A Session pre-configured to connect to Devicehub-like APIs."""
 
-    def __init__(self, base_url: URL = None, token=None):
+    def __init__(self, base_url: URL = None,
+                 token: str = None,
+                 inventory: Union[str, bool] = False):
         """Initializes a session pointing to a Devicehub endpoint.
 
         Authentication can be passed-in as a token for endpoints
@@ -41,12 +43,18 @@ class DevicehubClient(Session):
         :param base_url: An url pointing to a endpoint.
         :param token: A Base64 encoded token, as given by a devicehub.
                       You can encode tokens by executing `encode_token`.
+        :param inventory: If True, use the default inventory of the user.
+                          If False, do not use inventories (single-inventory
+                          database, this is the option by default).
+                          If a string, always use the set inventory.
         """
         base_url = base_url.to_text() if isinstance(base_url, boltons.urlutils.URL) else base_url
         super().__init__(base_url)
         assert base_url[-1] != '/', 'Do not provide a final slash to the URL'
         if token:
             self.set_auth(token)
+        self.inventory = inventory
+        self.user = None  # type: Dict[str, object]
 
     def set_auth(self, token):
         self.headers['Authorization'] = 'Basic {}'.format(token)
@@ -63,6 +71,8 @@ class DevicehubClient(Session):
         """
         user, _ = self.post('/users/login/', {'email': email, 'password': password}, status=200)
         self.set_auth(user['token'])
+        self.user = user
+        self.inventory = user['inventories'][0]
         return user
 
     def get(self,
@@ -166,6 +176,9 @@ class DevicehubClient(Session):
         if data and content_type == JSON:
             data = json.dumps(data, cls=ereuse_utils.JSONEncoder, sort_keys=True)
         url = base_url if not isinstance(base_url, boltons.urlutils.URL) else base_url.to_text()
+        assert url[-1] == '/', 'base_url should end with a slash'
+        if self.inventory and not isinstance(self.inventory, bool):
+            url = '{}/{}'.format(self.inventory, base_url)
         assert url[-1] == '/', 'base_url should end with a slash'
         if uri:
             url = self.parse_uri(url, uri)
