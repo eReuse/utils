@@ -7,7 +7,7 @@ test_requires = [
 
 setup(
     name="ereuse-utils",
-    version='0.4.0b24',
+    version='0.4.0b28',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',
@@ -23,7 +23,7 @@ setup(
         'usb_flash_drive': ['pyusb'],  # Check pyusb requirements
         'test': ['flask'],
         'session': ['requests-toolbelt'],
-        'cli': ['click'],
+        'cli': ['click', 'tqdm', 'colorama'],
         'keyring': ['keyring'],
         'testing': test_requires
     },

@@ -1,12 +1,24 @@
 import enum as _enum
 import getpass
+import itertools
+import os
 import pathlib
+import threading
+from contextlib import contextmanager
+from time import sleep
 from typing import Type
 
 from boltons import urlutils
 from click import types as click_types
+from colorama import Fore
+from tqdm import tqdm
 
 from ereuse_utils import if_none_return_none
+
+COMMON_CONTEXT_S = {'help_option_names': ('-h', '--help')}
+"""Common Context settings used for our implementations of the 
+Click cli.
+"""
 
 
 class Enum(click_types.Choice):
@@ -36,10 +48,7 @@ class Path(click_types.Path):
 
 
 class URL(click_types.StringParamType):
-    """Returns a bolton's URL.
-
-
-    """
+    """Returns a bolton's URL."""
 
     name = 'url'
 
@@ -95,3 +104,66 @@ def password(service: str, username: str, prompt: str = 'Password:') -> str:
     """Gets a password from the keyring or the terminal."""
     import keyring
     return keyring.get_password(service, username) or getpass.getpass(prompt)
+
+
+class Line(tqdm):
+    spinner_cycle = itertools.cycle(['-', '/', '|', '\\'])
+
+    def __init__(self, iterable=None, desc=None, total=100, leave=True, file=None, ncols=None,
+                 mininterval=0.2, maxinterval=10.0, miniters=None, ascii=None, disable=False,
+                 unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 bar_format=None,
+                 initial=0, position=None, postfix=None, unit_divisor=1000, write_bytes=None,
+                 gui=False, **kwargs):
+        super().__init__(iterable, desc, total, leave, file, ncols, mininterval, maxinterval,
+                         miniters, ascii, disable, unit, unit_scale, dynamic_ncols, smoothing,
+                         bar_format, initial, position, postfix, unit_divisor, write_bytes, gui,
+                         **kwargs)
+
+    def write_at_line(self, *args):
+        with self._lock:
+            self.display(''.join(str(arg) for arg in args))
+
+    @contextmanager
+    def spin(self, prefix: str):
+        self._stop_running = threading.Event()
+        spin_thread = threading.Thread(target=self._spin, args=[prefix])
+        spin_thread.start()
+        try:
+            yield
+        finally:
+            self._stop_running.set()
+            spin_thread.join()
+
+    def _spin(self, prefix: str):
+        while not self._stop_running.is_set():
+            self.write_at_line(prefix, next(self.spinner_cycle))
+            sleep(0.50)
+
+    @classmethod
+    @contextmanager
+    def reserve_lines(self, n):
+        try:
+            yield
+        finally:
+            self.move_down(n - 1)
+
+    @classmethod
+    def move_down(cls, n: int):
+        print('\n' * n)
+
+
+def clear():
+    os.system('clear')
+
+
+def title(text, ljust=38):
+    return str(text).ljust(ljust)
+
+
+def danger(text):
+    return '{}{}'.format(Fore.RED, text)
+
+
+def done():
+    return '{}done.'.format(Fore.GREEN)
