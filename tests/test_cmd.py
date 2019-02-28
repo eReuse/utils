@@ -55,8 +55,13 @@ def test_progressive_cmd_read_chars_decimal():
     p.out.read.side_effect = [t.format(20.44), t.format(90.00), t.format(30.00), t.format(80.01),
                               None]
     p.run()
-    assert p._callback.call_args_list == [mock.call(20), mock.call(70), mock.call(0),
-                                          mock.call(50), mock.call(20)]
+    assert p._callback.call_args_list == [
+        mock.call(20.44),
+        mock.call(69.56),
+        mock.call(0),
+        mock.call(50.010000000000005),
+        mock.call(19.989999999999995)
+    ]
 
     p = cmd.ProgressiveCmd('foo',
                            number_chars=cmd.ProgressiveCmd.DECIMALS,

@@ -2,6 +2,8 @@ import subprocess
 from contextlib import suppress
 from typing import Any, TextIO
 
+from ereuse_utils import text
+
 
 def run(*cmd: Any,
         out=subprocess.PIPE,
@@ -97,12 +99,8 @@ class ProgressiveCmd:
         while True:
             out = self.out.read(self.read) if self.read else self.out.readline()
             if out:
-                with suppress(ValueError):
-                    i = out.rindex('%')
-                    try:
-                        self.percentage = int(float(out[i - self.number_chars:i]))
-                    except ValueError:  # case when value is only one char (0 - 9)
-                        self.percentage = int(float(out[i - (self.number_chars - 1):i]))
+                with suppress(IndexError):
+                    self.percentage = tuple(text.positive_percentages(out))[-1]
             else:  # No more output
                 break
         if self.conn.wait() == 1:  # wait until cmd ends
