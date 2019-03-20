@@ -1,10 +1,11 @@
 import base64
 import json
-from typing import Any, Dict, Iterable, Tuple, Union
+from typing import Any, Dict, Iterable, Tuple, TypeVar, Union
 
 import boltons.urlutils
 from requests import Response
 from requests_toolbelt.sessions import BaseUrlSession
+from urllib3 import Retry
 from werkzeug.exceptions import HTTPException
 
 import ereuse_utils
@@ -21,11 +22,26 @@ Res = Tuple[Union[Dict[str, Any], str], Response]
 
 
 class Session(BaseUrlSession):
-    """A BaseUrlSession that always raises for status."""
+    """A BaseUrlSession that always raises for status and sets a
+     timeout for all requests by default.
+     """
 
-    def __init__(self, base_url=None):
+    def __init__(self, base_url=None, timeout=15):
+        """
+        :param base_url:
+        :param timeout: Time requests will wait to receive the first
+        response bytes (not the whole) from the server. In seconds.
+        """
         super().__init__(base_url)
+        self.timeout = timeout
         self.hooks['response'] = lambda r, *args, **kwargs: r.raise_for_status()
+
+    def request(self, method, url, *args, **kwargs):
+        kwargs.setdefault('timeout', self.timeout)
+        return super().request(method, url, *args, **kwargs)
+
+    def __repr__(self):
+        return '<{} base={}>.'.format(self.__class__.__name__, self.base_url)
 
 
 class DevicehubClient(Session):
@@ -33,7 +49,8 @@ class DevicehubClient(Session):
 
     def __init__(self, base_url: URL = None,
                  token: str = None,
-                 inventory: Union[str, bool] = False):
+                 inventory: Union[str, bool] = False,
+                 **kwargs):
         """Initializes a session pointing to a Devicehub endpoint.
 
         Authentication can be passed-in as a token for endpoints
@@ -48,8 +65,11 @@ class DevicehubClient(Session):
                           database, this is the option by default).
                           If a string, always use the set inventory.
         """
-        base_url = base_url.to_text() if isinstance(base_url, boltons.urlutils.URL) else base_url
-        super().__init__(base_url)
+        if isinstance(base_url, boltons.urlutils.URL):
+            base_url = base_url.to_text()
+        else:
+            base_url = str(base_url)
+        super().__init__(base_url, **kwargs)
         assert base_url[-1] != '/', 'Do not provide a final slash to the URL'
         if token:
             self.set_auth(token)
@@ -206,6 +226,43 @@ class DevicehubClient(Session):
         ])
         return url.to_text()
 
+    def __repr__(self):
+        return '<{} base={} inv={} user={}>.'.format(self.__class__.__name__, self.base_url,
+                                                     self.inventory, self.user)
+
 
 class WrongStatus(Exception):
     pass
+
+
+import requests
+from requests.adapters import HTTPAdapter
+
+T = TypeVar('T', bound=requests.Session)
+
+
+def retry(session: T,
+          retries=3,
+          backoff_factor=1,
+          status_to_retry=(500, 502, 504)) -> T:
+    """Configures requests from the given session to retry in
+    failed requests due to connection errors, HTTP response codes
+    with ``status_to_retry`` and 30X redirections.
+
+    Remember that you still need
+    """
+    # From https://www.peterbe.com/plog/best-practice-with-retries-with-requests
+    # Doc in https://urllib3.readthedocs.io/en/latest/reference/urllib3.util.html#module-urllib3.util.retry
+    session = session or requests.Session()
+    retry = Retry(
+        total=retries,
+        read=retries,
+        connect=retries,
+        backoff_factor=backoff_factor,
+        status_forcelist=status_to_retry,
+        method_whitelist=False  # Retry too in non-idempotent methods like POST
+    )
+    adapter = HTTPAdapter(max_retries=retry)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
+    return session

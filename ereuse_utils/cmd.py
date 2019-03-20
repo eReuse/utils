@@ -1,6 +1,6 @@
 import subprocess
 from contextlib import suppress
-from typing import Any, TextIO
+from typing import Any, Set, TextIO
 
 from ereuse_utils import text
 
@@ -44,12 +44,14 @@ class ProgressiveCmd:
     status of the running command.
     """
     READ_LINE = None
-    DECIMALS = 5
-    INT = 3
+    DECIMALS = {4, 5, 6}
+    DECIMAL_NUMBERS = 2
+    INT = {1, 2, 3}
 
     def __init__(self, *cmd: Any,
                  stdout=subprocess.DEVNULL,
-                 number_chars: int = INT,
+                 number_chars: Set[int] = INT,
+                 decimal_numbers: int = None,
                  read: int = READ_LINE,
                  callback=None):
         """
@@ -73,6 +75,7 @@ class ProgressiveCmd:
         self.read = read
         self.step = 0
         self.number_chars = number_chars
+        self.decimal_numbers = decimal_numbers
         # We call subprocess in the main thread so the main thread
         # can react on ``CalledProcessError`` exceptions
         self.conn = conn = subprocess.Popen(self.cmd,
@@ -92,22 +95,25 @@ class ProgressiveCmd:
     def percentage(self, v):
         self._percentage = v
         if self._callback and self._percentage > 0:
-            self._callback(self.increment())
+            increment = self.increment()
+            if increment > 0:  # Do not bother calling if there has not been any increment
+                self._callback(increment, self._percentage)
 
     def run(self) -> None:
         """Processes the output."""
         while True:
             out = self.out.read(self.read) if self.read else self.out.readline()
             if out:
-                with suppress(IndexError):
-                    self.percentage = tuple(text.positive_percentages(out))[-1]
+                with suppress(StopIteration):
+                    self.percentage = next(
+                        text.positive_percentages(out, self.number_chars, self.decimal_numbers)
+                    )
             else:  # No more output
                 break
         if self.conn.wait() == 1:  # wait until cmd ends
             raise subprocess.CalledProcessError(self.conn.returncode,
                                                 self.conn.args,
                                                 stderr=self.conn.stderr.read())
-        self.percentage = 100  # some cmds do not output 100 when completed
 
     def increment(self):
         """Returns the increment of progression from

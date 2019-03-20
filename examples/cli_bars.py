@@ -9,7 +9,7 @@ colorama.init(autoreset=True)
 cli.clear()
 print('heya!')
 l1 = cli.Line(position=0)
-l2 = cli.Line(position=1)
+l2 = cli.Line(position=1, total=100)
 
 
 def l1_spin():
@@ -36,6 +36,8 @@ with cli.Line.reserve_lines(2), l1, l2:
     threading.Thread(target=l1_spin).start()
     threading.Thread(target=l2_bar).start()
     sleep(4)
-    l1.write_at_line(cli.title('Foo'), cli.done())
-    l2.write_at_line(cli.title('Bar'), cli.done())
+    l1.close_message(cli.title('Foo'), cli.done())
+    l1.close()
+    l2.close_message(cli.title('Bar'), cli.done())
+    l2.close()
 print('finished!')

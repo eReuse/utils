@@ -6,12 +6,12 @@ import pathlib
 import threading
 from contextlib import contextmanager
 from time import sleep
-from typing import Type
+from typing import Any, Type
 
 from boltons import urlutils
 from click import types as click_types
 from colorama import Fore
-from tqdm import tqdm
+from tqdm._tqdm import _unicode, tqdm
 
 from ereuse_utils import if_none_return_none
 
@@ -109,20 +109,75 @@ def password(service: str, username: str, prompt: str = 'Password:') -> str:
 class Line(tqdm):
     spinner_cycle = itertools.cycle(['-', '/', '|', '\\'])
 
-    def __init__(self, iterable=None, desc=None, total=100, leave=True, file=None, ncols=None,
+    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None, ncols=None,
                  mininterval=0.2, maxinterval=10.0, miniters=None, ascii=None, disable=False,
-                 unit='it', unit_scale=False, dynamic_ncols=False, smoothing=0.3,
+                 unit='it', unit_scale=False, dynamic_ncols=True, smoothing=0.3,
                  bar_format=None,
                  initial=0, position=None, postfix=None, unit_divisor=1000, write_bytes=None,
                  gui=False, **kwargs):
+        self._closing = False
+        self._close_message = None
         super().__init__(iterable, desc, total, leave, file, ncols, mininterval, maxinterval,
                          miniters, ascii, disable, unit, unit_scale, dynamic_ncols, smoothing,
                          bar_format, initial, position, postfix, unit_divisor, write_bytes, gui,
                          **kwargs)
 
     def write_at_line(self, *args):
+        self.clear()
         with self._lock:
             self.display(''.join(str(arg) for arg in args))
+
+    def close_message(self, *args):
+        self._close_message = args
+
+    def close(self):
+        """
+        Cleanup and (if leave=False) close the progressbar.
+        """
+        if self.disable:
+            return
+
+        # Prevent multiple closures
+        self.disable = True
+
+        # decrement instance pos and remove from internal set
+        pos = abs(self.pos)
+        self._decr_instances(self)
+
+        # GUI mode
+        if not hasattr(self, "sp"):
+            return
+
+        # annoyingly, _supports_unicode isn't good enough
+        def fp_write(s):
+            self.fp.write(_unicode(s))
+
+        try:
+            fp_write('')
+        except ValueError as e:
+            if 'closed' in str(e):
+                return
+            raise  # pragma: no cover
+
+        with self._lock:
+            if self.leave:
+                if self._close_message:
+                    self.display(''.join(str(arg) for arg in self._close_message), pos=pos)
+                elif self.last_print_n < self.n:
+                    # stats for overall rate (no weighted average)
+                    self.avg_time = None
+                    self.display(pos=pos)
+                if not max([abs(getattr(i, "pos", 0))
+                            for i in self._instances] + [pos]):
+                    # only if not nested (#477)
+                    fp_write('\n')
+            else:
+                if self._close_message:
+                    self.display(''.join(str(arg) for arg in self._close_message), pos=pos)
+                else:
+                    self.display(msg='', pos=pos)
+                if not pos:
+                    fp_write('\r')
 
     @contextmanager
     def spin(self, prefix: str):
@@ -157,13 +212,18 @@ def clear():
     os.system('clear')
 
 
-def title(text, ljust=38):
-    return str(text).ljust(ljust)
+def title(text: Any, ljust=38) -> str:
+    # Note that is 38 px + 1 extra space = 39 min
+    return str(text).ljust(ljust) + ' '
 
 
-def danger(text):
-    return '{}{}'.format(Fore.RED, text)
+def danger(text: Any) -> str:
+    return '{}{}{}'.format(Fore.RED, text, Fore.RESET)
 
 
-def done():
-    return '{}done.'.format(Fore.GREEN)
+def warning(text: Any) -> str:
+    return '{}{}{}'.format(Fore.YELLOW, text, Fore.RESET)
+
+
+def done() -> str:
+    return '{}done.{}'.format(Fore.GREEN, Fore.RESET)

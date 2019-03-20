@@ -31,7 +31,10 @@ class JSONEncoder(json.JSONEncoder):
             return float(obj)
         elif isinstance(obj, Dumpeable):
             return obj.dump()
-        return json.JSONEncoder.default(self, obj)  # do not do ``super``
+        elif isinstance(obj, ipaddress._BaseAddress):
+            return str(obj)
+        # Instead of failing, return the string representation by default
+        return str(obj)
 
 
 class Dumpeable:
