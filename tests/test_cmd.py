@@ -21,14 +21,14 @@ def test_progressive_cmd_read_line_int():
     """Tests Progressive CMD with a command that reads lines
     and the percentage is formatted as naturals, like shred.
     """
-    p = cmd.ProgressiveCmd('foo', callback=mock.MagicMock())
+    p = cmd.ProgressiveCmd('foo', callback=mock.MagicMock(), check=False)
     p.out = mock.MagicMock()
     p.out.readline = mock.MagicMock()
     p.out.readline.side_effect = ['shred: /dev/sda: pass 1/1 (random)...', None]
     p.run()
     assert p._callback.call_count == 0, 'Progressive CMD does not update when completed'
 
-    p = cmd.ProgressiveCmd('foo', callback=mock.MagicMock())
+    p = cmd.ProgressiveCmd('foo', callback=mock.MagicMock(), check=False)
     p.out = mock.MagicMock()
     p.out.readline = mock.MagicMock()
     t = 'shred: /dev/sda: pass 1/1 (random)...111MiB/5.0GiB {}%'
@@ -49,7 +49,8 @@ def test_progressive_cmd_read_chars_decimal():
                            number_chars=cmd.ProgressiveCmd.DECIMALS,
                            decimal_numbers=cmd.ProgressiveCmd.DECIMAL_NUMBERS,
                            read=10,
-                           callback=mock.MagicMock())
+                           callback=mock.MagicMock(),
+                           check=False)
     p.out = mock.MagicMock()
     p.out.read = mock.MagicMock()
 
@@ -68,7 +69,8 @@ def test_progressive_cmd_read_chars_decimal():
     p = cmd.ProgressiveCmd('foo',
                            number_chars=cmd.ProgressiveCmd.DECIMALS,
                            read=10,
-                           callback=mock.MagicMock())
+                           callback=mock.MagicMock(),
+                           check=False)
     p.out = mock.MagicMock()
     p.out.read = mock.MagicMock()
 

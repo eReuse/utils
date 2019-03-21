@@ -6,7 +6,7 @@ import pathlib
 import threading
 from contextlib import contextmanager
 from time import sleep
-from typing import Any, Type
+from typing import Any, Iterable, Type
 
 from boltons import urlutils
 from click import types as click_types
@@ -109,15 +109,22 @@ def password(service: str, username: str, prompt: str = 'Password:') -> str:
 class Line(tqdm):
     spinner_cycle = itertools.cycle(['-', '/', '|', '\\'])
 
-    def __init__(self, iterable=None, desc=None, total=None, leave=True, file=None, ncols=None,
+    def __init__(self, total=None, desc=None, leave=True, file=None, ncols=None,
                  mininterval=0.2, maxinterval=10.0, miniters=None, ascii=None, disable=False,
                  unit='it', unit_scale=False, dynamic_ncols=True, smoothing=0.3,
                  bar_format=None,
                  initial=0, position=None, postfix=None, unit_divisor=1000, write_bytes=None,
-                 gui=False, **kwargs):
-        self._closing = False
-        self._close_message = None
-        super().__init__(iterable, desc, total, leave, file, ncols, mininterval, maxinterval,
+                 gui=False, close_message: Iterable = None, error_message: Iterable = None,
+                 **kwargs):
+        """This cannot work with iterables. Iterable use is considered
+        backward-compatibility in tqdm and inconsistent in Line.
+        Manually call ``update``.
+        """
+        self._close_message = close_message
+        self._error_message = error_message
+        if total:
+            bar_format = '{desc}{percentage:.1f}% |{bar}| {n:1g}/{total:1g}  {elapsed}<{remaining}'
+        super().__init__(None, desc, total, leave, file, ncols, mininterval, maxinterval,
                          miniters, ascii, disable, unit, unit_scale, dynamic_ncols, smoothing,
                          bar_format, initial, position, postfix, unit_divisor, write_bytes, gui,
                          **kwargs)
@@ -129,6 +136,9 @@ class Line(tqdm):
 
     def close_message(self, *args):
         self._close_message = args
+
+    def error_message(self, *args):
+        self._error_message = args
 
     def close(self):
         """
@@ -207,12 +217,17 @@ class Line(tqdm):
     def move_down(cls, n: int):
         print('\n' * n)
 
+    def __exit__(self, *exc):
+        if exc[0]:
+            self._close_message = self._error_message
+        return super().__exit__(*exc)
+
 
 def clear():
     os.system('clear')
 
 
-def title(text: Any, ljust=38) -> str:
+def title(text: Any, ljust=32) -> str:
     # Note that is 38 px + 1 extra space = 39 min
     return str(text).ljust(ljust) + ' '
 
@@ -225,5 +240,5 @@ def warning(text: Any) -> str:
     return '{}{}{}'.format(Fore.YELLOW, text, Fore.RESET)
 
 
-def done() -> str:
-    return '{}done.{}'.format(Fore.GREEN, Fore.RESET)
+def done(text: Any = 'done.') -> str:
+    return '{}{}{}'.format(Fore.GREEN, text, Fore.RESET)

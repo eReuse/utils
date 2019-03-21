@@ -53,7 +53,8 @@ class ProgressiveCmd:
                  number_chars: Set[int] = INT,
                  decimal_numbers: int = None,
                  read: int = READ_LINE,
-                 callback=None):
+                 callback=None,
+                 check=True):
         """
         :param cmd: The command to execute.
         :param stderr: the stderr passed-in to Popen.
@@ -70,10 +71,12 @@ class ProgressiveCmd:
                          in the increment from the last execution.
                          If not passed-in, you can get such increment
                          by executing manually the ``increment`` method.
+        :param check: Raise error if subprocess return code is non-zero.
         """
         self.cmd = tuple(str(c) for c in cmd)
         self.read = read
         self.step = 0
+        self.check = check
         self.number_chars = number_chars
         self.decimal_numbers = decimal_numbers
         # We call subprocess in the main thread so the main thread
@@ -110,7 +113,8 @@ class ProgressiveCmd:
                     )
             else:  # No more output
                 break
-        if self.conn.wait() == 1:  # wait until cmd ends
+        return_code = self.conn.wait()  # wait until cmd ends
+        if self.check and return_code != 0:
             raise subprocess.CalledProcessError(self.conn.returncode,
                                                 self.conn.args,
                                                 stderr=self.conn.stderr.read())
