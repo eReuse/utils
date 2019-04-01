@@ -7,7 +7,7 @@ def grep(text: str, value: str):
     """An easy 'grep -i' that yields lines where value is found."""
     for line in text.splitlines():
         if value in line:
-            yield value
+            yield line
 
 
 def between(text: str, begin='(', end=')'):
