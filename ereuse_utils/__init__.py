@@ -52,14 +52,17 @@ class Dumpeable:
         Creates a dictionary consisting of the
         non-private fields of this instance with camelCase field names.
         """
-        d = vars(self).copy()
-        for name in vars(self).keys():
-            if name.startswith('_') or name[0].isupper():
-                del d[name]
-            else:
-                import inflection
-                d[inflection.camelize(name, uppercase_first_letter=False)] = d.pop(name)
-        return d
+        import inflection
+        return {
+            inflection.camelize(name, uppercase_first_letter=False): getattr(self, name)
+            for name in self._field_names()
+            if not name.startswith('_') and not name[0].isupper()
+        }
+
+    def _field_names(self):
+        """An iterable of the names to dump."""
+        # Feel free to override this
+        return vars(self).keys()
 
     def to_json(self):
         """
@@ -67,6 +70,17 @@ class Dumpeable:
         this class.
         """
         return json.dumps(self, cls=self.ENCODER, indent=2)
+
+
+class DumpeableModel(Dumpeable):
+    """A dumpeable for SQLAlchemy models.
+    
+    Note that this does not avoid recursive relations.
+    """
+
+    def _field_names(self):
+        from sqlalchemy import inspect
+        return (a.key for a in inspect(self).attrs)
 
 
 def ensure_utf8(app_name_to_show_on_error: str):
