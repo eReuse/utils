@@ -10,6 +10,7 @@ def run(*cmd: Any,
         err=subprocess.DEVNULL,
         to_string=True,
         check=True,
+        shell=False,
         **kwargs) -> subprocess.CompletedProcess:
     """subprocess.run with a better API.
 
@@ -20,15 +21,18 @@ def run(*cmd: Any,
     :param err: As ``subprocess.run.stderr``.
     :param to_string: As ``subprocess.run.universal_newlines``.
     :param check: As ``subprocess.run.check``.
+    :param shell:
     :param kwargs: Any other parameters that ``subprocess.run``
                    accepts.
     :return: The result of executing ``subprocess.run``.
     """
-    return subprocess.run(tuple(str(c) for c in cmd),
+    cmds = tuple(str(c) for c in cmd)
+    return subprocess.run(' '.join(cmds) if shell else cmds,
                           stdout=out,
                           stderr=err,
                           universal_newlines=to_string,
                           check=check,
+                          shell=shell,
                           **kwargs)
 
 

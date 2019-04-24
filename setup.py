@@ -7,7 +7,7 @@ test_requires = [
 
 setup(
     name="ereuse-utils",
-    version='0.4.0b47',
+    version='0.4.0b48',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',

@@ -6,8 +6,13 @@ import pytest
 from ereuse_utils import cmd
 
 
-def test_cmd_run():
+def test_cmd_run_normal():
     out = cmd.run('echo', '1').stdout.strip()
+    assert out == '1'
+
+
+def test_cmd_run_shell():
+    out = cmd.run('echo', '1', shell=True).stdout.strip()
     assert out == '1'
 
 
