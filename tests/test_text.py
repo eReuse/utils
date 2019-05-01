@@ -1,6 +1,6 @@
 import math
 
-from ereuse_utils.text import grep, macs, numbers, positive_percentages
+from ereuse_utils.text import clean, grep, macs, numbers, positive_percentages
 
 
 def test_numbers():
@@ -51,3 +51,7 @@ def test_grep():
     assert 'foo bar' == next(grep('oh\nfoo bar\n faz', 'bar'))
     assert ' faz' == next(grep('oh\nfoo bar \n faz', 'faz'))
     assert not tuple(grep('oh\nfoo bar \n faz', 'nope'))
+
+
+def test_clean():
+    assert clean('  foo foo \n\n foo \n\n') == 'foo foo foo'

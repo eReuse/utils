@@ -6,12 +6,26 @@ import boltons.urlutils
 from requests import Response
 from requests_toolbelt.sessions import BaseUrlSession
 from urllib3 import Retry
-from werkzeug.exceptions import HTTPException
 
 import ereuse_utils
 
+# mypy
 Query = Iterable[Tuple[str, Any]]
-Status = Union[int, HTTPException]
+
+Status = Union[int]
+
+try:
+    from typing import Protocol  # Only py 3.6+
+except ImportError:
+    pass
+else:
+    class HasStatusProperty(Protocol):
+        def __init__(self, *args, **kwargs) -> None:
+            self.status = ...  # type: int
+
+
+    Status = Union[int, HasStatusProperty]
+
 JSON = 'application/json'
 ANY = '*/*'
 AUTH = 'Authorization'
@@ -19,6 +33,9 @@ BASIC = 'Basic {}'
 URL = Union[str, boltons.urlutils.URL]
 Data = Union[str, dict, ereuse_utils.Dumpeable]
 Res = Tuple[Union[Dict[str, Any], str], Response]
+
+
+# actual code
 
 
 class Session(BaseUrlSession):

@@ -65,3 +65,8 @@ def macs(text: str) -> Iterator[str]:
     """Find MACs in strings with other characters."""
     for x in re.finditer('{0}:{0}:{0}:{0}:{0}:{0}'.format(r'[a-fA-F0-9.+_-]+'), text):
         yield x.group()
+
+
+def clean(text: str) -> str:
+    """Trims the text and replaces multiple spaces with a single space."""
+    return ' '.join(text.split())

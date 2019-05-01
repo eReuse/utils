@@ -7,7 +7,7 @@ test_requires = [
 
 setup(
     name="ereuse-utils",
-    version='0.4.0b48',
+    version='0.4.0b49',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',
@@ -25,7 +25,8 @@ setup(
         'session': ['requests-toolbelt'],
         'cli': ['click', 'tqdm', 'colorama'],
         'keyring': ['keyring'],
-        'testing': test_requires
+        'testing': test_requires,
+        'getter': ['pyYAML']
     },
     tests_require=test_requires,
     setup_requires=[
