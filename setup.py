@@ -1,19 +1,37 @@
 from setuptools import find_packages, setup
 
+test_requires = [
+    'pytest',
+    'requests_mock'
+]
+
 setup(
     name="ereuse-utils",
-    version='0.3.1',
+    version='0.4.0b49',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',
     author='eReuse.org team',
     author_email='x.bustamante@ereuse.org',
     description='Common functionality for eReuse.org software',
+    install_requires=[
+        'boltons',
+        'inflection'
+    ],
     extras_require={
-        'naming': ['inflection'],
-        'usb_flash_drive': ['pyusb', 'inflection'],  # Check pyusb requirements
-        'test': ['flask']
+        'naming': [],
+        'usb_flash_drive': ['pyusb'],  # Check pyusb requirements
+        'test': ['flask'],
+        'session': ['requests-toolbelt'],
+        'cli': ['click', 'tqdm', 'colorama'],
+        'keyring': ['keyring'],
+        'testing': test_requires,
+        'getter': ['pyYAML']
     },
+    tests_require=test_requires,
+    setup_requires=[
+        'pytest-runner'
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',

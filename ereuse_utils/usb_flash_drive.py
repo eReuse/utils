@@ -28,6 +28,7 @@ def plugged_usbs(multiple=True) -> map or dict:
             for cfg in device:
                 # find_descriptor: what's it?
                 intf = usb.util.find_descriptor(cfg, bInterfaceClass=self._class)
+                # We don't want Card readers
                 if intf is not None:
                     try:
                         product = intf.device.product.lower()
@@ -41,14 +42,16 @@ def plugged_usbs(multiple=True) -> map or dict:
             return False
 
     def get_pendrive(pen: usb.Device) -> dict:
+        if not pen.manufacturer or not pen.product or not pen.serial_number:
+            raise UsbDoesNotHaveHid()
         manufacturer = pen.manufacturer.strip() or str(pen.idVendor)
         model = pen.product.strip() or str(pen.idProduct)
         serial_number = pen.serial_number.strip()
-        hid = Naming.hid(manufacturer, serial_number, model)
+        hid = Naming.hid('USBFlashDrive', manufacturer, model, serial_number)
         return {
-            '_id': hid,  # Make live easier to DeviceHubClient by using _id
+            'id': hid,  # Make live easier to DeviceHubClient by using _id
             'hid': hid,
-            '@type': 'USBFlashDrive',
+            'type': 'USBFlashDrive',
             'serialNumber': serial_number,
             'model': model,
             'manufacturer': manufacturer,
@@ -66,4 +69,8 @@ def plugged_usbs(multiple=True) -> map or dict:
 
 
 class NoUSBFound(Exception):
+    pass
+
+
+class UsbDoesNotHaveHid(Exception):
     pass
