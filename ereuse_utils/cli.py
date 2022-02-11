@@ -11,7 +11,7 @@ from typing import Any, Iterable, Type
 from boltons import urlutils
 from click import types as click_types
 from colorama import Fore
-from tqdm._tqdm import tqdm
+from tqdm import tqdm
 
 from ereuse_utils import if_none_return_none
 
