@@ -11,14 +11,20 @@ from typing import Any, Iterable, Type
 from boltons import urlutils
 from click import types as click_types
 from colorama import Fore
-from tqdm._tqdm import _unicode, tqdm
+from tqdm import tqdm
 
 from ereuse_utils import if_none_return_none
 
 COMMON_CONTEXT_S = {'help_option_names': ('-h', '--help')}
-"""Common Context settings used for our implementations of the 
+"""Common Context settings used for our implementations of the
 Click cli.
 """
+
+# Py2/3 compat. Empty conditional to avoid coverage
+try:
+    _unicode = unicode
+except NameError:
+    _unicode = str
 
 
 class Enum(click_types.Choice):
@@ -64,9 +70,9 @@ class URL(click_types.StringParamType):
         super().__init__()
         """Creates the type URL. You can require or enforce parts
         of the URL by setting parameters of this constructor.
-        
+
         If the param is...
-        
+
         - None, no check is performed (default).
         - True, it is then required as part of the URL.
         - False, it is then required NOT to be part of the URL.
