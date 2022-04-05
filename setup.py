@@ -7,12 +7,12 @@ test_requires = [
 
 setup(
     name="ereuse-utils",
-    version='0.4.0b49',
+    version='0.4.0b50',
     packages=find_packages(),
     url='https://github.com/eReuse/utils',
     license='AGPLv3 License',
     author='eReuse.org team',
-    author_email='x.bustamante@ereuse.org',
+    author_email='hello@ereuse.org',
     description='Common functionality for eReuse.org software',
     install_requires=[
         'boltons',
@@ -40,7 +40,7 @@ setup(
         'License :: OSI Approved :: GNU Affero General Public License v3',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.7',
         'Topic :: System :: Logging',
         'Topic :: Utilities',
     ],
