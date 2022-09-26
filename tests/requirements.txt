@@ -1,0 +1,7 @@
+click
+colorama
+requests_mock
+requests-toolbelt
+pytest
+PyYAML
+tqdm
